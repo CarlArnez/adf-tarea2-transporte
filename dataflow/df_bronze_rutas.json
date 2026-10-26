@@ -36,6 +36,12 @@
 				},
 				{
 					"name": "select2"
+				},
+				{
+					"name": "union1"
+				},
+				{
+					"name": "union2"
 				}
 			],
 			"scriptLines": [
@@ -99,7 +105,9 @@
 				"          Estado = estado",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select2"
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"select1, sql union(byName: true)~> union1",
+				"union1, select2 union(byName: true)~> union2"
 			]
 		}
 	}
