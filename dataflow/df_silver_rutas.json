@@ -15,8 +15,19 @@
 					"name": "source1"
 				}
 			],
-			"sinks": [],
-			"transformations": [],
+			"sinks": [
+				{
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "derivedColumn2"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          AnioFuente as integer,",
@@ -32,7 +43,28 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> source1"
+				"     format: 'table') ~> source1",
+				"source1 derive(CodigoRuta = trim(CodigoRuta),",
+				"          NombreRuta = trim(NombreRuta),",
+				"          Origen = trim(Origen),",
+				"          Destino = trim(Destino)) ~> derivedColumn1",
+				"derivedColumn1 derive(RutaHistoricaId = iifNull(trim(RutaHistoricaId), concat('RH-', regexExtract(CodigoRuta, '(\\\\d+)', 1))),",
+				"          VigenciaDesde = iif(   isNull(VigenciaDesde) || length(trim(toString(VigenciaDesde))) == 0,   toDate('2020-01-01'),   iif(     isInteger(trim(toString(VigenciaDesde))),     addDays(toDate('1899-12-30'), toInteger(trim(toString(VigenciaDesde)))),     coalesce(       toDate(trim(toString(VigenciaDesde)), 'yyyy-MM-dd'),       toDate(trim(toString(VigenciaDesde)), 'dd/MM/yyyy')     )   ) ),",
+				"          VigenciaHasta = iif(   isNull(VigenciaHasta) || length(trim(toString(VigenciaHasta))) == 0,   toDate('2025-12-31'),   iif(     isInteger(trim(toString(VigenciaHasta))),     addDays(toDate('1899-12-30'), toInteger(trim(toString(VigenciaHasta)))),     coalesce(       toDate(trim(toString(VigenciaHasta)), 'yyyy-MM-dd'),       toDate(trim(toString(VigenciaHasta)), 'dd/MM/yyyy')     )   ) )) ~> derivedColumn2",
+				"derivedColumn2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          RutaHistoricaId,",
+				"          CodigoRuta,",
+				"          NombreRuta,",
+				"          Origen,",
+				"          Destino,",
+				"          VigenciaDesde,",
+				"          VigenciaHasta,",
+				"          Estado",
+				"     )) ~> sink1"
 			]
 		}
 	}

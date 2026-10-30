@@ -16,7 +16,14 @@
 				}
 			],
 			"sinks": [],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "derivedColumn2"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          AnioFuente as string,",
@@ -34,7 +41,14 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> source1"
+				"     format: 'table') ~> source1",
+				"source1 derive(ViajeId = trim(ViajeId),",
+				"          EstadoViaje = upper(trim(EstadoViaje)),",
+				"          KmRecorridos = toDouble(KmRecorridos)) ~> derivedColumn1",
+				"derivedColumn1 derive(FechaServicio = toDate(trim(FechaServicio), 'yyyy-MM-dd'),",
+				"          TiempoSalidaReal = toTimestamp(concat(toString(FechaServicio), ' ', right(toString(HoraSalida), 8)), 'yyyy-MM-dd HH:mm:ss'),",
+				"          TimestampLlegadaReal = toTimestamp(concat(toString(FechaServicio), ' ', right(toString(HoraLlegada), 8)), 'yyyy-MM-dd HH:mm:ss'),",
+				"          HoraProgramada = right(toString(HoraProgramada), 8)) ~> derivedColumn2"
 			]
 		}
 	}
