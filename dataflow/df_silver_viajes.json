@@ -15,7 +15,15 @@
 					"name": "source1"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "dw_silver_viajes_sql",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
 					"name": "derivedColumn1"
@@ -46,9 +54,42 @@
 				"          EstadoViaje = upper(trim(EstadoViaje)),",
 				"          KmRecorridos = toDouble(KmRecorridos)) ~> derivedColumn1",
 				"derivedColumn1 derive(FechaServicio = toDate(trim(FechaServicio), 'yyyy-MM-dd'),",
-				"          TiempoSalidaReal = toTimestamp(concat(toString(FechaServicio), ' ', right(toString(HoraSalida), 8)), 'yyyy-MM-dd HH:mm:ss'),",
-				"          TimestampLlegadaReal = toTimestamp(concat(toString(FechaServicio), ' ', right(toString(HoraLlegada), 8)), 'yyyy-MM-dd HH:mm:ss'),",
-				"          HoraProgramada = right(toString(HoraProgramada), 8)) ~> derivedColumn2"
+				"          HoraProgramada = toTimestamp(concat(toString(FechaServicio), ' ', right(trim(toString(HoraProgramada)), 8)), 'yyyy-MM-dd HH:mm:ss')) ~> derivedColumn2",
+				"derivedColumn2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          AnioFuente as integer,",
+				"          ViajeId as string,",
+				"          RutaHistoricaId as string,",
+				"          VehiculoId as string,",
+				"          FechaServicio as date,",
+				"          HoraProgramada as timestamp,",
+				"          HoraSalida as timestamp,",
+				"          HoraLlegada as timestamp,",
+				"          ValidacionesTarjeta as integer,",
+				"          KmRecorridos as decimal(8,1),",
+				"          EstadoViaje as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          ViajeId,",
+				"          RutaHistoricaId,",
+				"          VehiculoId,",
+				"          FechaServicio,",
+				"          HoraProgramada,",
+				"          HoraSalida,",
+				"          HoraLlegada,",
+				"          ValidacionesTarjeta,",
+				"          KmRecorridos,",
+				"          EstadoViaje",
+				"     )) ~> sink1"
 			]
 		}
 	}
